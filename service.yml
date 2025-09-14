@@ -2,11 +2,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: service-app
-  namespace: khushi
 spec:
-  type: LoadBalancer           
   selector:
-    app: book-my-show               
+    app: book-my-show
   ports:
-    - port: 80                
-      targetPort: 3000 
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: NodePort
