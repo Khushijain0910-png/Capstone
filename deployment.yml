@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: bms-app
-        image: khushijain0910/capstone-project:tagname
+        image: khushijain0910/capstone-project:2
         ports:
         - containerPort: 3000
