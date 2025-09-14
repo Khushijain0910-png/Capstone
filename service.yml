@@ -4,10 +4,10 @@ metadata:
   name: service-app
   namespace: khushi
 spec:
+  type: LoadBalancer
   selector:
-    app: book-my-show
+    app: book-my-show   # must match the deployment labels
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 3000
-  type: NodePort
+    - port: 80          # External port for the LoadBalancer
+      targetPort: 3000  # Pod container port
+
