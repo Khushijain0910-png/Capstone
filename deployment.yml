@@ -1,21 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bms-app
-  labels:
-    app: bms
+  name: book-my-show
+  namespace: khushi
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: bms
+      app: book-my-show
   template:
     metadata:
       labels:
-        app: bms
+        app: book-my-show
     spec:
       containers:
-      - name: bms-container
-        image: kastrov/bms:latest  # Replace with your Docker image
+      - name: bms-app
+        image: khushijain0910/capstone-project:tagname
         ports:
-        - containerPort: 3000  # Replace with the port your app runs on
+        - containerPort: 3000
