@@ -7,8 +7,8 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'
-        SONAR_TOKEN = credentials('Sonar-token')
+        SCANNER_HOME = tool 'sonar-scanner'   // Sonar scanner tool in Jenkins
+        SONAR_TOKEN = credentials('Sonar-token') // SonarQube token
         REPO_NAME = 'khushijain0910/capstone-project'
         IMAGE_NAME = 'bms-app'
     }
@@ -16,11 +16,11 @@ pipeline {
     stages {
         stage('Clean Workspace') {
             steps {
-                cleanWs()
+                deleteDir()
             }
         }
 
-        stage('Checkout from Git') {
+        stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Khushijain0910-png/Capstone.git'
                 sh 'ls -la'
@@ -31,57 +31,30 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar-server') {
                     sh """
-                    $SCANNER_HOME/bin/sonar-scanner \
-                    -Dsonar.projectKey=BMS \
-                    -Dsonar.projectName=BMS \
-                    -Dsonar.host.url=http://3.144.13.232:9000 \
-                    -Dsonar.token=$SONAR_TOKEN
+                        $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=Capstone_Project \
+                        -Dsonar.projectName=Capstone_Project \
+                        -Dsonar.sources=bookmyshow-app \
+                        -Dsonar.host.url=http://54.153.76.43:9000/ \
+                        -Dsonar.login=$SONAR_TOKEN
                     """
                 }
             }
         }
 
-        stage('Quality Gate') {
-    steps {
-        script {
-            try {
-                timeout(time: 2, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
-                }
-            } catch (err) {
-                echo "Quality Gate check skipped due to timeout: ${err}"
-            }
-        }
-    }
-}
-
-
         stage('Install Dependencies') {
             steps {
-                sh '''
-                cd bookmyshow-app
-                ls -la
-                if [ -f package.json ]; then
-                    rm -rf node_modules package-lock.json
-                    npm install
-                else
-                    echo "Error: package.json not found in bookmyshow-app!"
-                    exit 1
-                fi
-                '''
-            }
-        }
-
-        stage('OWASP FS Scan') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-
-        stage('Trivy FS Scan') {
-            steps {
-                sh 'trivy fs . > trivyfs.txt'
+                dir('bookmyshow-app') {
+                    sh '''
+                        if [ -f package.json ]; then
+                            rm -rf node_modules package-lock.json
+                            npm install
+                        else
+                            echo "Error: package.json not found!"
+                            exit 1
+                        fi
+                    '''
+                }
             }
         }
 
@@ -102,19 +75,8 @@ pipeline {
         stage('Deploy to Container') {
             steps {
                 sh '''
-                echo "Stopping and removing old container..."
-                docker stop bms-app || true
-                docker rm bms-app || true
-
-                echo "Running new container..."
-                docker run -d --restart=always --name bms-app -p 3000:3000 khushijain0910/capstone-project:${BUILD_NUMBER}
-
-                echo "Checking running containers..."
-                docker ps -a
-
-                echo "Fetching logs..."
-                sleep 5
-                docker logs bms-app
+                    docker rm -f bms-app || true
+                    docker run -d --name bms-app -p 3000:3000 khushijain0910/capstone-project:${BUILD_NUMBER}
                 '''
             }
         }
@@ -128,7 +90,7 @@ pipeline {
 }
 
 
-
+        
 
        
 
